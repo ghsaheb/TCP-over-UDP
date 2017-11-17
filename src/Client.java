@@ -22,7 +22,8 @@ public class Client
         v.read(receiveData);
 //        String modifiedSentence = new String(receivePacket.getData());
         String modifiedSentence = new String(receiveData, "UTF-8");
-        System.out.println("FROM SERVER:" + modifiedSentence);
+
+        System.out.println("FROM SERVER:" + modifiedSentence/* + " " + receiveData.length + " " + sendData.length*/);
         v.close();
     }
 }

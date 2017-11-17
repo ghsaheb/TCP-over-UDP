@@ -24,8 +24,10 @@ public class Test
         result = gh.getArray();
         System.out.println(Arrays.toString(result));
 
-        GVPHeader v = new GVPHeader(result);
-        System.out.println(v.getSourcePortNumber() + " " + v.getDestPortNumber());
+    //    GVPHeader v = new GVPHeader(result);
+//        byte[] sendData1 = "string".getBytes();
+//        byte[] sendData2 = "ghazal".getBytes();
+    //    System.out.println(Arrays.toString(concat(sendData1, sendData2)));
     }
     
 }
