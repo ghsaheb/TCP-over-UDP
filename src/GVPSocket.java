@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.zip.Checksum;
 
 
-public class GVPSocket
+public class GVPSocket extends Thread
 {
     private DatagramSocket socket;
     private InetAddress destIP;
@@ -14,7 +14,7 @@ public class GVPSocket
     private int seqNum;
     public static final int cwnd = 10;
     public static final int MSS = 1000 + GVPHeader.headerSize;
-//    private Timer timer;
+    private Timer timer;
 
     public GVPSocket(String IP, int portNumber) throws Exception
     {
@@ -50,6 +50,10 @@ public class GVPSocket
         }
     }
 
+    public void run(){
+
+    }
+
     public int getLocalPort(){
         return socket.getLocalPort();
     }
@@ -70,6 +74,7 @@ public class GVPSocket
         long checksumValue = checksum.getValue();
         packetHeader.setChecksum(checksumValue);
         sendPacket(concat(packetHeader.getArray(),array));
+        Thread.sleep(1000);
         while (readAck()!=seqNum);
         seqNum = 1- seqNum;
     }
@@ -130,6 +135,15 @@ public class GVPSocket
         else System.out.println("not ack");
         return -1;
     }
+
+    // to start or stop the timer
+//    public void setTimer(boolean isNewTimer){
+//        if (timer != null) timer.cancel();
+//        if (isNewTimer){
+//            timer = new Timer();
+//            timer.schedule(new Timeout(), timeoutVal);
+//        }
+//    }
 
     private byte[] concat(byte[] array1, byte[] array2) {
         int aLen = array1.length;

@@ -2,18 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a1e38a13-29c8-457f-8bcb-55483031b2ff" name="Default" comment="HandShaking is Done!">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Client.class" afterPath="$PROJECT_DIR$/src/Client.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/GVPHeader.class" afterPath="$PROJECT_DIR$/src/GVPHeader.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/GVPServerSocket.class" afterPath="$PROJECT_DIR$/src/GVPServerSocket.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/Timeout.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/GVPSocket.class" afterPath="$PROJECT_DIR$/src/GVPSocket.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Server.class" afterPath="$PROJECT_DIR$/src/Server.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Test.class" afterPath="$PROJECT_DIR$/src/Test.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Client.java" afterPath="$PROJECT_DIR$/src/Client.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/GVPHeader.java" afterPath="$PROJECT_DIR$/src/GVPHeader.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/GVPSocket.java" afterPath="$PROJECT_DIR$/src/GVPSocket.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Server.java" afterPath="$PROJECT_DIR$/src/Server.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Test.java" afterPath="$PROJECT_DIR$/src/Test.java" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -28,8 +20,8 @@
       <file leaf-file-name="GVPServerSocket.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/GVPServerSocket.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
-              <caret line="22" column="32" lean-forward="true" selection-start-line="22" selection-start-column="32" selection-end-line="22" selection-end-column="32" />
+            <state relative-caret-position="195">
+              <caret line="16" column="26" lean-forward="true" selection-start-line="16" selection-start-column="26" selection-end-line="16" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -38,13 +30,26 @@
       <file leaf-file-name="GVPSocket.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/GVPSocket.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="17" column="0" lean-forward="true" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+            <state relative-caret-position="1080">
+              <caret line="77" column="26" lean-forward="false" selection-start-line="77" selection-start-column="26" selection-end-line="77" selection-end-column="26" />
               <folding>
-                <element signature="e#1520#1521#0" expanded="true" />
                 <element signature="e#1564#1565#0" expanded="true" />
-                <element signature="e#4954#4955#0" expanded="true" />
-                <element signature="e#5007#5008#0" expanded="true" />
+                <element signature="e#1608#1609#0" expanded="true" />
+                <element signature="e#5293#5294#0" expanded="true" />
+                <element signature="e#5346#5347#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Timeout.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Timeout.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="60">
+              <caret line="4" column="48" lean-forward="false" selection-start-line="4" selection-start-column="48" selection-end-line="4" selection-end-column="48" />
+              <folding>
+                <element signature="e#92#93#0" expanded="true" />
+                <element signature="e#150#151#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -98,6 +103,13 @@
       </file>
     </leaf>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="FindInProjectRecents">
     <findStrings>
       <find>RECEIVED</find>
@@ -120,11 +132,12 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/GVPServerSocket.java" />
         <option value="$PROJECT_DIR$/src/GVPHeader.java" />
         <option value="$PROJECT_DIR$/src/Test.java" />
         <option value="$PROJECT_DIR$/src/Server.java" />
         <option value="$PROJECT_DIR$/src/Client.java" />
+        <option value="$PROJECT_DIR$/src/Timeout.java" />
+        <option value="$PROJECT_DIR$/src/GVPServerSocket.java" />
         <option value="$PROJECT_DIR$/src/GVPSocket.java" />
       </list>
     </option>
@@ -290,7 +303,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1510911495013</updated>
-      <workItem from="1510911498917" duration="31780000" />
+      <workItem from="1510911498917" duration="34372000" />
     </task>
     <task id="LOCAL-00001" summary="HandShaking is Done!">
       <created>1510924249430</created>
@@ -303,7 +316,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="31780000" />
+    <option name="totallyTimeSpent" value="34372000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
@@ -453,14 +466,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/GVPServerSocket.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="22" column="32" lean-forward="true" selection-start-line="22" selection-start-column="32" selection-end-line="22" selection-end-column="32" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Test.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="388">
@@ -499,15 +504,42 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/Timeout.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="48" lean-forward="false" selection-start-line="4" selection-start-column="48" selection-end-line="4" selection-end-column="48" />
+          <folding>
+            <element signature="e#92#93#0" expanded="true" />
+            <element signature="e#150#151#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/GVPServerSocket.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="195">
+          <caret line="16" column="26" lean-forward="true" selection-start-line="16" selection-start-column="26" selection-end-line="16" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk-9.0.1.jdk/Contents/Home/lib/src.zip!/java.base/java/lang/Thread.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="1627" column="35" lean-forward="true" selection-start-line="1627" selection-start-column="35" selection-end-line="1627" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/GVPSocket.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="17" column="0" lean-forward="true" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+        <state relative-caret-position="1080">
+          <caret line="77" column="26" lean-forward="false" selection-start-line="77" selection-start-column="26" selection-end-line="77" selection-end-column="26" />
           <folding>
-            <element signature="e#1520#1521#0" expanded="true" />
             <element signature="e#1564#1565#0" expanded="true" />
-            <element signature="e#4954#4955#0" expanded="true" />
-            <element signature="e#5007#5008#0" expanded="true" />
+            <element signature="e#1608#1609#0" expanded="true" />
+            <element signature="e#5293#5294#0" expanded="true" />
+            <element signature="e#5346#5347#0" expanded="true" />
           </folding>
         </state>
       </provider>
