@@ -1,9 +1,12 @@
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.util.*;
 import java.nio.*;
 public class Test
 {
     public static void main(String[] args) throws Exception
-    {        
+    {
+        /*
         byte[] arr = new byte[10];
         arr[0] = 10;
         ByteBuffer b = ByteBuffer.allocate(4);
@@ -28,6 +31,11 @@ public class Test
 //        byte[] sendData1 = "string".getBytes();
 //        byte[] sendData2 = "ghazal".getBytes();
     //    System.out.println(Arrays.toString(concat(sendData1, sendData2)));
+      */
+        byte[] array = new byte[10];
+        DatagramSocket socket = new DatagramSocket(9999);
+        DatagramPacket pck = new DatagramPacket(array, array.length);
+
     }
     
 }

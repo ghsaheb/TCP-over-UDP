@@ -11,7 +11,8 @@ public class GVPHeader
     private int destPort;
     private int seqNumber;
     private int ACKnumber;
-//    private CRC32 checksum;
+    public static final int headerSize = 25;
+    private byte[] checksum;
 
     public GVPHeader(int _sourcePort, int _destPort){
         sourcePort = _sourcePort;
@@ -21,9 +22,11 @@ public class GVPHeader
         FIN = false;
         ACKnumber = 0;
         seqNumber = 0;
+        checksum = new byte[8];
     }
 
     public GVPHeader(byte[] array){
+        checksum = new byte[8];
         byte[] result = new byte[4];
         result[0] = 0;
         result[1] = 0;
@@ -73,6 +76,9 @@ public class GVPHeader
         temp = ByteBuffer.wrap(result).getInt();
         if (temp == 1) FIN = true;
         else FIN = false;
+        for(int i = 0;i<8;i++){
+            checksum[i] = array[i+17];
+        }
     }
 
     public void setSYN(boolean SYN){
@@ -90,9 +96,11 @@ public class GVPHeader
     public void setACKNumber(int ACKnumber){
         this.ACKnumber = ACKnumber;
     }
-//    public void setChecksum(CRC32 checksum){
-//        this.checksum = checksum;
-//    }
+    public void setChecksum(long checksumValue){
+        ByteBuffer b = ByteBuffer.allocate(8);
+        b.putLong(checksumValue);
+        checksum = b.array();
+    }
     public boolean getSYN(){
         return SYN;
     }
@@ -101,6 +109,9 @@ public class GVPHeader
     }
     public boolean getFIN(){
         return FIN;
+    }
+    public long getChecksum() {
+        return ByteBuffer.wrap(checksum).getLong();
     }
     public int getSeqNumber(){
         return seqNumber;
@@ -115,7 +126,7 @@ public class GVPHeader
         return destPort;
     }
     public byte[] getArray(){
-        byte[] header = new byte[17];
+        byte[] header = new byte[25];
         byte[] result = new byte[4];
         result = setByte(sourcePort, 2);
         header[0] = result[2];
@@ -145,6 +156,9 @@ public class GVPHeader
         if(FIN==true) result = setByte(1,1);
         else result = setByte(0,1);
         header[16] = result[3];
+        for (int i =0;i<8;i++){
+            header[i+17] = checksum[i];
+        }
         return header;
     }
 
