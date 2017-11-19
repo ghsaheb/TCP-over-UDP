@@ -1,12 +1,16 @@
+// import com.sun.deploy.association.AssociationAlreadyRegisteredException;
+
 import java.io.*;
 import java.net.*;
+import java.sql.Array;
+import java.sql.Time;
 import java.util.*;
 import java.util.zip.CRC32;
 import java.util.Map;
 import java.util.zip.Checksum;
 
 
-public class GVPSocket extends Thread
+public class GVPSocket
 {
     private DatagramSocket socket;
     private InetAddress destIP;
@@ -15,26 +19,41 @@ public class GVPSocket extends Thread
     public static final int cwnd = 10;
     public static final int MSS = 1000 + GVPHeader.headerSize;
     private Timer timer;
+    private ArrayList<byte[]> buffer;
+    private ArrayList<byte[]> ACKbuffer;
+    private ArrayList<Integer> buffer_size;
+    private ReadThread thread;
+    private int buffCounter;
 
     public GVPSocket(String IP, int portNumber) throws Exception
     {
         seqNum = 0;
+        buffCounter = 0;
         socket = new DatagramSocket(0);
         destIP = InetAddress.getByName(IP);
         destPort = portNumber;
+        buffer = new ArrayList<byte[]>();
+        ACKbuffer = new ArrayList<byte[]>();
+        thread = new ReadThread();
         handshake();
     }
 
     public GVPSocket(InetAddress IP, int portNumber) throws Exception
     {
         seqNum = 0;
+        buffCounter = 0;
         socket = new DatagramSocket(0);
         destIP = IP;
         destPort = portNumber;
+        buffer = new ArrayList<byte[]>();
+        ACKbuffer = new ArrayList<byte[]>();
+        thread = new ReadThread();
     }
 
-    private void handshake() throws Exception
-    {
+    public void startReading(){
+        thread.start();
+    }
+    private void handshake() throws Exception {
         GVPHeader syn = new GVPHeader(socket.getLocalPort(), destPort);
         syn.setSYN(true);
         sendPacket(syn.getArray());
@@ -48,10 +67,7 @@ public class GVPSocket extends Thread
             ack.setACK(true);
             sendPacket(ack.getArray());
         }
-    }
-
-    public void run(){
-
+        startReading();
     }
 
     public int getLocalPort(){
@@ -74,8 +90,9 @@ public class GVPSocket extends Thread
         long checksumValue = checksum.getValue();
         packetHeader.setChecksum(checksumValue);
         sendPacket(concat(packetHeader.getArray(),array));
-        Thread.sleep(1000);
-        while (readAck()!=seqNum);
+        TimeoutThread timeoutthread = new TimeoutThread(seqNum);
+        timeoutthread.start();
+//        while (readAck()!=seqNum);
         seqNum = 1- seqNum;
     }
 
@@ -88,20 +105,24 @@ public class GVPSocket extends Thread
     void read(byte[] array) throws Exception // EXTRACTS DATA FROM PACKET
     {
         byte[] withHeader = new byte[MSS];
-        int packetLength = readPacket(withHeader);
+        // int packetLength = readPacket(withHeader);
+        System.out.println("buffer.size: "+ buffer.size()+ " buff counter : "+ buffCounter);
+        while (buffCounter>=buffer.size()) Thread.sleep(1);//"size of buffer in while: "+buffer.size()+" buff counter: "+buffCounter);
+        withHeader = buffer.get(buffCounter);
+        buffCounter++;
         byte[] header = new byte[GVPHeader.headerSize];
         for (int i=0;i<GVPHeader.headerSize;i++) header[i] = array[i];
         for (int i=GVPHeader.headerSize;i<Math.min(array.length, withHeader.length);i++) array[i-GVPHeader.headerSize] = withHeader[i];
-        GVPHeader headerObject = new GVPHeader(withHeader);
+//        GVPHeader headerObject = new GVPHeader(withHeader);
 
-        Checksum checksum = new CRC32();
-        checksum.update(array, 0, packetLength - GVPHeader.headerSize);
-        long checksumValue = checksum.getValue();
-        if (errorDetection(headerObject.getChecksum(),checksumValue)) System.out.println("Error in packet");
-        else if (!(headerObject.getACK())){
-            sendAck(headerObject.getSeqNumber());
-        }
-        System.out.println("header checksum: " + headerObject.getChecksum() + "\ndata checksum: " + checksumValue);
+//        Checksum checksum = new CRC32();
+//        checksum.update(array, 0, packetLength - GVPHeader.headerSize);
+        //long checksumValue = checksum.getValue();
+//        if (errorDetection(headerObject.getChecksum(),checksumValue)) System.out.println("Error in packet");
+//        else if (!(headerObject.getACK())){
+//            sendAck(headerObject.getSeqNumber());
+//        }
+//        System.out.println("header checksum: " + headerObject.getChecksum() + "\ndata checksum: " + checksumValue);
     }
 
     int readPacket(byte[] array) throws Exception // READS PACKET FROM SOCKET
@@ -127,7 +148,7 @@ public class GVPSocket extends Thread
     }
     public int readAck() throws Exception{
         byte[] ack = new byte[GVPHeader.headerSize];
-        readPacket(ack);
+
         GVPHeader ackHeader = new GVPHeader(ack);
         if(ackHeader.getACK()){
             return ackHeader.getACKNumber();
@@ -157,6 +178,74 @@ public class GVPSocket extends Thread
 
     private boolean errorDetection(long headerChecksum, long dataChecksum){
         return headerChecksum != dataChecksum;
+    }
+
+    private class ReadThread extends Thread
+    {
+        @Override
+        public void run(){
+            while (true){
+                byte[] array = new byte[MSS];
+                DatagramPacket receivePacket = new DatagramPacket(array, array.length);
+                try {
+                    socket.receive(receivePacket);
+                } catch (IOException e) {
+                    System.out.println("jomjome shode ghomghome");
+                }
+                byte[] header = new byte[GVPHeader.headerSize];
+                for (int i=0;i<GVPHeader.headerSize;i++) header[i] = array[i];
+                GVPHeader  head = new GVPHeader(header);
+                if (head.getACK()){
+                    ACKbuffer.add(header);
+                }
+                else {
+//                System.out.println("packet size: " + receivePacket.getLength());
+//                System.out.println("Data:"+Arrays.toString(array));
+//                System.out.println("buffer size:"+buffer.size());
+                    Checksum checksum = new CRC32();
+                    checksum.update(array, GVPHeader.headerSize, receivePacket.getLength() - GVPHeader.headerSize);
+                    long checksumValue = checksum.getValue();
+                    if (errorDetection(head.getChecksum(), checksumValue)){
+                        System.out.println("Error in packet");
+                        continue;
+                    }
+                    try {
+                        sendAck(head.getSeqNumber());
+                    } catch (Exception e) {}
+                    buffer.add(array);
+                }
+            }
+        }
+    }
+
+    private class TimeoutThread extends Thread{
+        private int seqNum;
+        public TimeoutThread(int _seqNum){
+            super();
+            seqNum = _seqNum;
+        }
+        @Override
+        public void run(){
+            while (true){
+                boolean flag = false;
+                for(int i=0;i<ACKbuffer.size();i++){
+                    byte[] temp = ACKbuffer.get(i);
+                    byte[] tempHeader = new byte[GVPHeader.headerSize];
+                    for (int j=0;j<GVPHeader.headerSize;j++){
+                        tempHeader[j]=temp[j];
+                    }
+                    GVPHeader header = new GVPHeader(tempHeader);
+                    if (!(header.getACK())) continue;
+                    if (header.getACKNumber() == seqNum){
+                        ACKbuffer.remove(i);
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag) break;
+            }
+            System.out.println("ACK No. " + seqNum + " received.");
+        }
     }
 
 }

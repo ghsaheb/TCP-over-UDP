@@ -31,11 +31,21 @@ public class Test
 //        byte[] sendData1 = "string".getBytes();
 //        byte[] sendData2 = "ghazal".getBytes();
     //    System.out.println(Arrays.toString(concat(sendData1, sendData2)));
-      */
+
         byte[] array = new byte[10];
         DatagramSocket socket = new DatagramSocket(9999);
         DatagramPacket pck = new DatagramPacket(array, array.length);
-
+*/
+        asghar a = new asghar();
     }
-    
+
+    public static void kheng(){
+        System.out.println("hehe");
+    }
+
+    public static class asghar {
+        public asghar(){
+            kheng();
+        }
+    }
 }
