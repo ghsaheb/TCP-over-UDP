@@ -30,13 +30,13 @@ public class GVPServerSocket
         newSocket.sendPacket(syn_ack.getArray());
         byte[] array_ack = new byte[1024];
         newSocket.readPacket(array_ack);
-        newSocket.startReading();
         GVPHeader ack = new GVPHeader(array_ack);
-//        System.out.println("3: " + Arrays.toString(ack.getArray()));
         if (!(ack.getACK())) System.out.println("Connection refused"); // EXCEPTION
         else {
-            System.out.println("Handshake done");
+            System.out.println("Handshake done - connection established");
         }
+        //end of hand shaking
+        newSocket.startReading(); //start thread
         return newSocket;
     }
 }

@@ -13,8 +13,8 @@ public class Client
             byte[] receiveData = new byte[1024];
             String sentence = inFromUser.readLine();
             byte[] sendData = sentence.getBytes();
-            v.send(sendData);
-            v.read(receiveData);
+            v.send(sendData); //imp
+            v.read(receiveData); //imp
             String modifiedSentence = new String(receiveData, "UTF-8");
             System.out.println("FROM SERVER:" + modifiedSentence/* + " " + receiveData.length + " " + sendData.length*/);
         }

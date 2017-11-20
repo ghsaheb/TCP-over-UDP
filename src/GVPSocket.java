@@ -1,5 +1,3 @@
-// import com.sun.deploy.association.AssociationAlreadyRegisteredException;
-
 import java.io.*;
 import java.net.*;
 import java.sql.Array;
@@ -20,7 +18,7 @@ public class GVPSocket
     public static final int MSS = 1000 + GVPHeader.headerSize;
     private Timer timer;
     private ArrayList<byte[]> buffer;
-    private ArrayList<byte[]> ACKbuffer;
+    private ArrayList<Integer> ACKbuffer;
     private ReadThread thread;
     private int buffCounter;
     private byte[] sendBuffer; // BADAN BUFFER BEZANIM KE WINDOW DASHTE BASHIM
@@ -33,12 +31,12 @@ public class GVPSocket
         destIP = InetAddress.getByName(IP);
         destPort = portNumber;
         buffer = new ArrayList<byte[]>();
-        ACKbuffer = new ArrayList<byte[]>();
+        ACKbuffer = new ArrayList<Integer>();
         thread = new ReadThread();
         handshake();
     }
 
-    public GVPSocket(InetAddress IP, int portNumber) throws Exception
+    public GVPSocket(InetAddress IP, int portNumber) throws Exception //socket ie k server misaze handshaking nadare
     {
         seqNum = 0;
         buffCounter = 0;
@@ -46,7 +44,7 @@ public class GVPSocket
         destIP = IP;
         destPort = portNumber;
         buffer = new ArrayList<byte[]>();
-        ACKbuffer = new ArrayList<byte[]>();
+        ACKbuffer = new ArrayList<Integer>();
         thread = new ReadThread();
     }
 
@@ -78,25 +76,24 @@ public class GVPSocket
 
     void send(byte[] array) throws Exception
     {
-
         if (array.length > MSS - GVPHeader.headerSize){
             // PACKETIZING
             System.out.println("big packet");
         }
-
+        //make header for packet
         GVPHeader packetHeader = new GVPHeader(socket.getLocalPort(),destPort);
         packetHeader.setSeqNumber(seqNum);
         Checksum checksum = new CRC32();
         checksum.update(array,0,array.length);
         long checksumValue = checksum.getValue();
         packetHeader.setChecksum(checksumValue);
+        //send packet
         sendBuffer = concat(packetHeader.getArray(),array);
-//        sendPacket(concat(packetHeader.getArray(),array));
         sendPacket(sendBuffer);
+        //start timer
         TimeoutThread timeoutthread = new TimeoutThread(seqNum);
         timeoutthread.start();
-
-//        while (readAck()!=seqNum);
+        System.out.println("packet with number "+ seqNum + "sent");
         seqNum = 1- seqNum;
     }
 
@@ -106,35 +103,21 @@ public class GVPSocket
         socket.send(packet);
     }
 
-    void read(byte[] array) throws Exception // EXTRACTS DATA FROM PACKET
+    void read(byte[] array) throws Exception
     {
         byte[] withHeader = new byte[MSS];
-        // int packetLength = readPacket(withHeader);
         System.out.println("buffer.size: "+ buffer.size()+ " buff counter : "+ buffCounter);
-        while (buffCounter>=buffer.size()) Thread.sleep(1);//"size of buffer in while: "+buffer.size()+" buff counter: "+buffCounter);
+        while (buffCounter>=buffer.size()) Thread.sleep(1);
         withHeader = buffer.get(buffCounter);
         buffCounter++;
-        byte[] header = new byte[GVPHeader.headerSize];
-        for (int i=0;i<GVPHeader.headerSize;i++) header[i] = array[i];
-        for (int i=GVPHeader.headerSize;i<Math.min(array.length, withHeader.length);i++) array[i-GVPHeader.headerSize] = withHeader[i];
-//        GVPHeader headerObject = new GVPHeader(withHeader);
-
-//        Checksum checksum = new CRC32();
-//        checksum.update(array, 0, packetLength - GVPHeader.headerSize);
-        //long checksumValue = checksum.getValue();
-//        if (errorDetection(headerObject.getChecksum(),checksumValue)) System.out.println("Error in packet");
-//        else if (!(headerObject.getACK())){
-//            sendAck(headerObject.getSeqNumber());
-//        }
-//        System.out.println("header checksum: " + headerObject.getChecksum() + "\ndata checksum: " + checksumValue);
+        System.arraycopy(withHeader, GVPHeader.headerSize, array, 0, Math.min(array.length, withHeader.length) - 25);
     }
 
-    int readPacket(byte[] array) throws Exception // READS PACKET FROM SOCKET
+    void readPacket(byte[] array) throws Exception // READS PACKET FROM SOCKET
     {
         DatagramPacket receivePacket = new DatagramPacket(array, array.length);
         socket.receive(receivePacket);
         System.out.println("packet size: " + receivePacket.getLength());
-        return receivePacket.getLength();
     }
 
     void close() throws Exception {
@@ -150,25 +133,6 @@ public class GVPSocket
         ack.setACKNumber(seqNum);
         sendPacket(ack.getArray());
     }
-    public int readAck() throws Exception{
-        byte[] ack = new byte[GVPHeader.headerSize];
-
-        GVPHeader ackHeader = new GVPHeader(ack);
-        if(ackHeader.getACK()){
-            return ackHeader.getACKNumber();
-        }
-        else System.out.println("not ack");
-        return -1;
-    }
-
-    // to start or stop the timer
-//    public void setTimer(boolean isNewTimer){
-//        if (timer != null) timer.cancel();
-//        if (isNewTimer){
-//            timer = new Timer();
-//            timer.schedule(new Timeout(), timeoutVal);
-//        }
-//    }
 
     private byte[] concat(byte[] array1, byte[] array2) {
         int aLen = array1.length;
@@ -189,34 +153,37 @@ public class GVPSocket
         @Override
         public void run(){
             while (true){
+                System.out.println("reading new packet");
                 byte[] array = new byte[MSS];
                 DatagramPacket receivePacket = new DatagramPacket(array, array.length);
                 try {
                     socket.receive(receivePacket);
+                    System.out.println("packet received");
                 } catch (IOException e) {
-                    System.out.println("jomjome shode ghomghome");
+                    System.out.println("read thread is not receiving any packets");
                 }
                 byte[] header = new byte[GVPHeader.headerSize];
                 for (int i=0;i<GVPHeader.headerSize;i++) header[i] = array[i];
-                GVPHeader  head = new GVPHeader(header);
+                GVPHeader head = new GVPHeader(header);
                 if (head.getACK()){
-                    ACKbuffer.add(header);
+                    System.out.println("packet is ack with number: "+head.getACKNumber());
+                    ACKbuffer.add(head.getACKNumber());
+                    System.out.println("ack packet added to ackbuffer and size is now:"+ACKbuffer.size());
                 }
                 else {
-//                System.out.println("packet size: " + receivePacket.getLength());
-//                System.out.println("Data:"+Arrays.toString(array));
-//                System.out.println("buffer size:"+buffer.size());
+                    System.out.println("Packet has data and is not ack "+"packet number is:"+head.getSeqNumber());
+                    System.arraycopy(header, GVPHeader.headerSize, array, 0, Math.min(array.length, header.length) - 25);
                     Checksum checksum = new CRC32();
                     checksum.update(array, GVPHeader.headerSize, receivePacket.getLength() - GVPHeader.headerSize);
                     long checksumValue = checksum.getValue();
                     if (errorDetection(head.getChecksum(), checksumValue)){
-                        System.out.println("Error in packet");
+                        System.out.println("Error in packet checksum");
                         continue;
                     }
                     try {
                         Thread.sleep(1000);
                         sendAck(head.getSeqNumber());
-                        System.out.println("ACK sent");
+                        System.out.println("ACK sent and ackNum is:"+ head.getSeqNumber());
                     } catch (Exception e) {}
                     buffer.add(array);
                 }
@@ -232,59 +199,41 @@ public class GVPSocket
     private class TimeoutThread extends Thread{
         private int seqNum;
         Timer timer;
-        private final int timeoutVal = 100;
-
-        private class Timeout extends TimerTask
-        {
-            public void run(){
-        //        System.out.println("here we are");
-                try {
-                    resend();
-                    setTimer(true);
-                } catch (Exception e) {}
-            }
-        }
-
-        public void setTimer(boolean isNewTimer){
-            if (timer != null) timer.cancel();
-            if (isNewTimer){
-                timer = new Timer();
-                timer.schedule(new Timeout(), timeoutVal);
-            }
-        }
 
         public TimeoutThread(int _seqNum){
             super();
             seqNum = _seqNum;
-
+            timer = new Timer();
+            timer.schedule(new Timeout(), new Date(),10000);
+            System.out.println("received seq number is: "+seqNum);
         }
-        @Override
-        public void run(){
- //           setTimer(true);
-            while (true){
-                boolean flag = false;
-       //         System.out.println("AAAAA: " + ACKbuffer.size());
-                for(int i=0;i<ACKbuffer.size();i++){
-                    byte[] temp = ACKbuffer.get(i);
-                    byte[] tempHeader = new byte[GVPHeader.headerSize];
-                    for (int j=0;j<GVPHeader.headerSize;j++){
-                        tempHeader[j]=temp[j];
+
+        private class Timeout extends TimerTask
+        {
+            public void run(){
+                try {
+                    System.out.println("time limit exceeded");
+                    boolean flag = false;
+                    System.out.println("ack buffer size is: "+ACKbuffer.size());
+                    for(int i=0;i<ACKbuffer.size();i++){
+                        int ackNumber = ACKbuffer.get(i);
+                        System.out.println("searching for ack "+ seqNum +"and ack buffer size: "+ACKbuffer.size());
+                        if (ackNumber == seqNum){
+                            ACKbuffer.remove(i);
+                            System.out.println("ack number"+i+"removed");
+                            System.out.println("ack found in ackbuffer");
+                            timer.cancel();
+                            System.out.println("timer canceled");
+                            flag = true;
+                            break;
+                        }
                     }
-                    GVPHeader header = new GVPHeader(tempHeader);
-                    if (!(header.getACK())) continue;
-                    if (header.getACKNumber() == seqNum){
-                        ACKbuffer.remove(i);
-                        flag = true;
-                        break;
+                    if (!flag){
+                        System.out.println("ack not found => resending" + seqNum);
+                        resend();
                     }
-                }
-                if (flag){
-                    System.out.println("timeout occured");
- //                   timer.cancel();
-                    break;
-                }
+                } catch (Exception e) {}
             }
-            System.out.println("ACK No. " + seqNum + " received.");
         }
     }
 
