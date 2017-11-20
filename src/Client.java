@@ -9,15 +9,16 @@ public class Client
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
         GVPSocket v = new GVPSocket("localhost", 9999);
 
-        while (true) {
+   //     while (true) {
             byte[] receiveData = new byte[1024];
             String sentence = inFromUser.readLine();
             byte[] sendData = sentence.getBytes();
-            v.send(sendData); //imp
+            v.send("./b.jpg"); //imp
+            System.out.println("Sending Done");
             v.read(receiveData); //imp
             String modifiedSentence = new String(receiveData, "UTF-8");
             System.out.println("FROM SERVER:" + modifiedSentence/* + " " + receiveData.length + " " + sendData.length*/);
-        }
-//        v.close();
+     //   }
+        v.close();
     }
 }

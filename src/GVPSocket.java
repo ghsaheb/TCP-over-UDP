@@ -14,6 +14,7 @@ public class GVPSocket
     private InetAddress destIP;
     private int destPort;
     private int seqNum;
+    private int receiveNum;
     public static final int cwnd = 10;
     public static final int MSS = 1000 + GVPHeader.headerSize;
     private Timer timer;
@@ -25,6 +26,7 @@ public class GVPSocket
 
     public GVPSocket(String IP, int portNumber) throws Exception
     {
+        receiveNum = 0;
         seqNum = 0;
         buffCounter = 0;
         socket = new DatagramSocket(0);
@@ -38,6 +40,7 @@ public class GVPSocket
 
     public GVPSocket(InetAddress IP, int portNumber) throws Exception //socket ie k server misaze handshaking nadare
     {
+        receiveNum = 0;
         seqNum = 0;
         buffCounter = 0;
         socket = new DatagramSocket(0);
@@ -71,14 +74,42 @@ public class GVPSocket
     public int getLocalPort(){
         return socket.getLocalPort();
     }
-//    void send(String pathToFile) throws Exception;
+    void send(String pathToFile) throws Exception{
+        System.out.println("Haji I am here :|");
+        File file = new File(pathToFile);
+        //init array with file length
+        byte[] bytesArray = new byte[(int) file.length()];
+
+        FileInputStream fis = new FileInputStream(file);
+        fis.read(bytesArray); //read file into bytes[]
+        fis.close();
+       // System.out.println(Arrays.toString(bytesArray));
+        System.out.println(bytesArray.length);
+        send(bytesArray);
+    }
 //    void read(String pathToFile) throws Exception;
 
     void send(byte[] array) throws Exception
     {
         if (array.length > MSS - GVPHeader.headerSize){
             // PACKETIZING
+            byte[] temp = new byte[MSS - GVPHeader.headerSize];
+            for (int i = 0;i<array.length;i++){
+                temp[i%(MSS - GVPHeader.headerSize)] = array[i];
+                if ((i+1)%(MSS - GVPHeader.headerSize) == 0 ){
+                    System.out.println("Yasari: " + i );
+                    send(temp);
+                }
+                else if (i == array.length-1){
+                    System.out.println("GHADERI");
+                    byte[] temp2 = new byte[array.length - (1000*(array.length/1000))];
+                    for (int j = (1000*(array.length/1000));j<array.length;j++) temp2[j%1000] = array[j];
+                    send(temp2);
+                    break;
+                }
+            }
             System.out.println("big packet");
+            return;
         }
         //make header for packet
         GVPHeader packetHeader = new GVPHeader(socket.getLocalPort(),destPort);
@@ -110,6 +141,7 @@ public class GVPSocket
         while (buffCounter>=buffer.size()) Thread.sleep(1);
         withHeader = buffer.get(buffCounter);
         buffCounter++;
+        System.out.println("SHAMAEIZADEH: " + buffCounter);
         System.arraycopy(withHeader, GVPHeader.headerSize, array, 0, Math.min(array.length, withHeader.length) - 25);
     }
 
@@ -180,8 +212,12 @@ public class GVPSocket
                         System.out.println("Error in packet checksum");
                         continue;
                     }
+                    if (head.getSeqNumber()==receiveNum){
+                        receiveNum = 1-receiveNum;
+                    }
+                    else continue;
                     try {
-                        Thread.sleep(1000);
+//                        Thread.sleep(1000);
                         sendAck(head.getSeqNumber());
                         System.out.println("ACK sent and ackNum is:"+ head.getSeqNumber());
                     } catch (Exception e) {}
@@ -204,7 +240,7 @@ public class GVPSocket
             super();
             seqNum = _seqNum;
             timer = new Timer();
-            timer.schedule(new Timeout(), new Date(),10000);
+            timer.schedule(new Timeout(), new Date(),1000);
             System.out.println("received seq number is: "+seqNum);
         }
 

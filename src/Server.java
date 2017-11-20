@@ -16,7 +16,7 @@ public class Server
             System.out.println("RECEIVED: " + sentence);
             String capitalizedSentence = sentence.toUpperCase();
             sendData = capitalizedSentence.getBytes();
-            gh.send(sendData); //imp
+ //           gh.send(sendData); //imp
   //          gh.close();
         }
     }
