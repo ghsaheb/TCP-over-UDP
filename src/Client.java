@@ -10,11 +10,11 @@ public class Client
         GVPSocket v = new GVPSocket("localhost", 9999);
 
    //     while (true) {
-            byte[] receiveData = new byte[1024];
-            String sentence = inFromUser.readLine();
-            byte[] sendData = sentence.getBytes();
-    //        v.send("./a.txt"); //imp
-            v.send(sendData);
+    //        byte[] receiveData = new byte[1024];
+    //        String sentence = inFromUser.readLine();
+    //        byte[] sendData = sentence.getBytes();
+            v.send("./b.jpg"); //imp
+    //        v.send(sendData);
             System.out.println("Sending Done");
  //           v.read(receiveData); //imp
             //String modifiedSentence = new String(receiveData, "UTF-8");

@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.sql.Array;
 import java.sql.Time;
 import java.util.*;
@@ -80,23 +81,43 @@ public class GVPSocket
         FileInputStream fis = new FileInputStream(file);
         fis.read(bytesArray);
         fis.close();
-        System.out.println(bytesArray.length);
+        int numOfPackets = bytesArray.length / (MSS - GVPHeader.headerSize);
+        if (bytesArray.length % (MSS - GVPHeader.headerSize) != 0) numOfPackets++; 
+//        System.out.println(bytesArray.length);
+//      HERE WE ARE GOING TO SEND FILE SIZE IN TERM OF PACKETS
+        ByteBuffer initialPacket = ByteBuffer.allocate(4);
+        initialPacket.putInt(numOfPackets);
+        send(initialPacket.array());
         send(bytesArray);
     }
 
     void read(String pathToFile) throws Exception
     {
-        File file = new File(pathToFile); // ?
+        File file = new File(pathToFile);
         Thread.sleep(10000);
         file.createNewFile();
         System.out.println("Start of writing to file");
         FileOutputStream fos = new FileOutputStream(file);
-        while (!buffer.isEmpty()){
-            byte[] temp = buffer.get(0);
+        while (buffCounter>=buffer.size()) Thread.sleep(1);
+        byte[] initialPacketWithHeader = buffer.get(buffCounter);
+        buffCounter++;
+        byte[] initialPacket = new byte[initialPacketWithHeader.length - GVPHeader.headerSize];
+        System.arraycopy(initialPacketWithHeader, GVPHeader.headerSize, initialPacket, 0, initialPacket.length);        
+        System.out.println("LEN: " + initialPacket.length);
+        /*if (initialPacket.length != 4){
+            throw new GVPException("Error in writing to file. Initial packet is not correct");
+        }*/
+        int numOfPackets = ByteBuffer.wrap(initialPacket).getInt();
+        if (numOfPackets < 0){
+            throw new GVPException("Error in writing to file. Initial packet is not correct");
+        }
+        for (int i=0;i<numOfPackets;i++){
+            while (buffCounter>=buffer.size()) Thread.sleep(1);
+            byte[] temp = buffer.get(buffCounter);
+            buffCounter++;            
             byte[] toWrite = new byte[temp.length - GVPHeader.headerSize];
-            for (int i=0;i<toWrite.length;i++) toWrite[i] = temp[i+GVPHeader.headerSize];
+            System.arraycopy(temp, GVPHeader.headerSize, toWrite, 0, toWrite.length);    
             fos.write(toWrite);
-            buffer.remove(0);   
         }
         System.out.println("End of writing to file");
         fos.close();
@@ -156,6 +177,7 @@ public class GVPSocket
         buffCounter++;
         System.out.println("SHAMAEIZADEH: " + buffCounter);
         System.arraycopy(withHeader, GVPHeader.headerSize, array, 0, Math.min(array.length, withHeader.length) - GVPHeader.headerSize);
+        // ‌BUG
     }
 
     void readPacket(byte[] array) throws Exception // READS PACKET FROM SOCKET
@@ -222,8 +244,9 @@ public class GVPSocket
                     break;
                 }
                 else {
-                    System.out.println("Packet has data and is not ack "+"packet number is:"+head.getSeqNumber());
-                    System.arraycopy(header, GVPHeader.headerSize, array, 0, Math.min(array.length, header.length) - GVPHeader.headerSize);
+                    System.out.println("Packet has data and is not ack."+" Packet number is: "+head.getSeqNumber());
+                    System.arraycopy(header, GVPHeader.headerSize, array, 0, Math.min(array.length, header.length) - GVPHeader.headerSize); 
+                    // BUG
                     Checksum checksum = new CRC32();
                     checksum.update(array, GVPHeader.headerSize, receivePacket.getLength() - GVPHeader.headerSize);
                     long checksumValue = checksum.getValue();
@@ -240,7 +263,10 @@ public class GVPSocket
                         sendAck(head.getSeqNumber());
                         System.out.println("ACK sent and ackNum is:"+ head.getSeqNumber());
                     } catch (Exception e) {}
-                    buffer.add(array);
+                    // THIS PART IS FOR ADDING CORRECT SIZE OF PACKET TO BUFFER
+                    byte[] temp = new byte[receivePacket.getLength()];
+                    for (int i = 0;i<receivePacket.getLength();i++) temp[i] = array[i];
+                    buffer.add(temp);
                 }
             }
         }
