@@ -13,11 +13,12 @@ public class Client
             byte[] receiveData = new byte[1024];
             String sentence = inFromUser.readLine();
             byte[] sendData = sentence.getBytes();
-            v.send("./b.jpg"); //imp
+    //        v.send("./a.txt"); //imp
+            v.send(sendData);
             System.out.println("Sending Done");
-            v.read(receiveData); //imp
-            String modifiedSentence = new String(receiveData, "UTF-8");
-            System.out.println("FROM SERVER:" + modifiedSentence/* + " " + receiveData.length + " " + sendData.length*/);
+ //           v.read(receiveData); //imp
+            //String modifiedSentence = new String(receiveData, "UTF-8");
+            //System.out.println("FROM SERVER:" + modifiedSentence/* + " " + receiveData.length + " " + sendData.length*/);
      //   }
         v.close();
     }

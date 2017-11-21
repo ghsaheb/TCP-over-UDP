@@ -20,7 +20,9 @@ public class GVPServerSocket
         DatagramPacket receivePacket = new DatagramPacket(array_syn, array_syn.length);
         serverSocket.receive(receivePacket);
         GVPHeader syn = new GVPHeader(array_syn);
-        if (!(syn.getSYN())) System.out.println("Error in syn"); // EXCEPTION
+        if (!(syn.getSYN())){
+            throw new GVPHandshakingException("Bad message received. Excpecting SYN");
+        }
         InetAddress IPAddress = receivePacket.getAddress();
         int port = receivePacket.getPort();
         GVPSocket newSocket = new GVPSocket(IPAddress, port);
@@ -31,12 +33,11 @@ public class GVPServerSocket
         byte[] array_ack = new byte[1024];
         newSocket.readPacket(array_ack);
         GVPHeader ack = new GVPHeader(array_ack);
-        if (!(ack.getACK())) System.out.println("Connection refused"); // EXCEPTION
-        else {
-            System.out.println("Handshake done - connection established");
+        if (!(ack.getACK())){
+            throw new GVPHandshakingException("Bad message received. Excpecting ACK");
         }
-        //end of hand shaking
-        newSocket.startReading(); //start thread
+        System.out.println("Connection established");
+        newSocket.startReading();
         return newSocket;
     }
 }

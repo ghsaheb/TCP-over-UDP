@@ -10,14 +10,15 @@ public class Server
         byte[] receiveData = new byte[900];
         byte[] sendData = new byte[1024];
         GVPSocket gh = serverSocket.accept();
-        while(true){
-            gh.read(receiveData); //imp
+        //while(true){
+        //gh.read("./Trash/a.txt"); //imp
+        gh.read(receiveData);
             String sentence = new String(receiveData, "UTF-8");
             System.out.println("RECEIVED: " + sentence);
-            String capitalizedSentence = sentence.toUpperCase();
-            sendData = capitalizedSentence.getBytes();
+   //         String capitalizedSentence = sentence.toUpperCase();
+   //         sendData = capitalizedSentence.getBytes();
  //           gh.send(sendData); //imp
   //          gh.close();
-        }
+    //    }
     }
 }
