@@ -13,9 +13,9 @@ public class Client
     //        byte[] receiveData = new byte[1024];
     //        String sentence = inFromUser.readLine();
     //        byte[] sendData = sentence.getBytes();
-            v.send("./a.mp3"); //imp
+    //        v.send("./a.mp3"); //imp
     //        v.send(sendData);
-        v.send("./b.mp3");
+        v.send("./b.jpg");
             System.out.println("Sending Done");
  //           v.read(receiveData); //imp
             //String modifiedSentence = new String(receiveData, "UTF-8");
