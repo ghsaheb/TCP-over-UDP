@@ -11,10 +11,11 @@ public class Server
         byte[] sendData = new byte[1024];
         GVPSocket gh = serverSocket.accept();
         //while(true){
-        gh.read("./Trash/torobche.jpg"); //imp
+        gh.read("./Trash/asghar.mp3"); //imp
+        gh.read("./Trash/akbar.mp3"); //imp
 //        gh.read(receiveData);
-            String sentence = new String(receiveData, "UTF-8");
-            System.out.println("RECEIVED: " + sentence);
+  //          String sentence = new String(receiveData, "UTF-8");
+ //           System.out.println("RECEIVED: " + sentence);
    //         String capitalizedSentence = sentence.toUpperCase();
    //         sendData = capitalizedSentence.getBytes();
  //           gh.send(sendData); //imp

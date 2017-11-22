@@ -16,6 +16,7 @@ public class GVPSocket
     private int destPort;
     private int seqNum;
     private int receiveNum;
+    private int lastACKed;
     public static final int MSS = 1024 + GVPHeader.headerSize;
     private ArrayList<byte[]> buffer;
     private ArrayList<Integer> ACKbuffer;
@@ -25,7 +26,8 @@ public class GVPSocket
 
     public GVPSocket(String IP, int portNumber) throws Exception
     {
-        receiveNum = 0;
+        lastACKed = -1;
+        receiveNum = -1;
         seqNum = 0;
         buffCounter = 0;
         socket = new DatagramSocket(0);
@@ -39,7 +41,8 @@ public class GVPSocket
 
     public GVPSocket(InetAddress IP, int portNumber) throws Exception
     {
-        receiveNum = 0;
+        lastACKed = -1;
+        receiveNum = -1;
         seqNum = 0;
         buffCounter = 0;
         socket = new DatagramSocket(0);
@@ -94,7 +97,7 @@ public class GVPSocket
     void read(String pathToFile) throws Exception
     {
         File file = new File(pathToFile);
-        Thread.sleep(10000);
+//        Thread.sleep(10000);
         file.createNewFile();
         System.out.println("Start of writing to file");
         FileOutputStream fos = new FileOutputStream(file);
@@ -103,7 +106,7 @@ public class GVPSocket
         buffCounter++;
         byte[] initialPacket = new byte[initialPacketWithHeader.length - GVPHeader.headerSize];
         System.arraycopy(initialPacketWithHeader, GVPHeader.headerSize, initialPacket, 0, initialPacket.length);        
-        System.out.println("LEN: " + initialPacket.length);
+//        System.out.println("LEN: " + initialPacket.length);
         /*if (initialPacket.length != 4){
             throw new GVPException("Error in writing to file. Initial packet is not correct");
         }*/
@@ -131,18 +134,18 @@ public class GVPSocket
             for (int i = 0;i<array.length;i++){
                 temp[i%(MSS - GVPHeader.headerSize)] = array[i];
                 if ((i+1)%(MSS - GVPHeader.headerSize) == 0 ){
-                    System.out.println("Yasari: " + i );
+                 //   System.out.println("Yasari: " + i );
                     send(temp);
                 }
                 else if (i == array.length-1){
-                    System.out.println("GHADERI");
+                 //   System.out.println("GHADERI");
                     byte[] temp2 = new byte[array.length - ((MSS - GVPHeader.headerSize)*(array.length/(MSS - GVPHeader.headerSize)))];
                     for (int j = ((MSS - GVPHeader.headerSize)*(array.length/(MSS - GVPHeader.headerSize)));j<array.length;j++) temp2[j%(MSS - GVPHeader.headerSize)] = array[j];
                     send(temp2);
                     break;
                 }
             }
-            System.out.println("big packet");
+        //    System.out.println("big packet");
             return;
         }
         //make header for packet
@@ -159,7 +162,9 @@ public class GVPSocket
         TimeoutThread timeoutthread = new TimeoutThread(seqNum);
         timeoutthread.start();
         System.out.println("packet with number "+ seqNum + "sent");
-        seqNum = 1- seqNum;
+        while (lastACKed != seqNum) Thread.sleep(1);
+//        seqNum = 1- seqNum;
+        seqNum++;
     }
 
     void sendPacket(byte[] array) throws Exception
@@ -171,20 +176,19 @@ public class GVPSocket
     void read(byte[] array) throws Exception
     {
         byte[] withHeader = new byte[MSS];
-        System.out.println("buffer.size: "+ buffer.size()+ " buff counter : "+ buffCounter);
+    //    System.out.println("buffer.size: "+ buffer.size()+ " buff counter : "+ buffCounter);
         while (buffCounter>=buffer.size()) Thread.sleep(1);
         withHeader = buffer.get(buffCounter);
         buffCounter++;
-        System.out.println("SHAMAEIZADEH: " + buffCounter);
-        System.arraycopy(withHeader, GVPHeader.headerSize, array, 0, Math.min(array.length, withHeader.length) - GVPHeader.headerSize);
-        // ‌BUG
+    //    System.out.println("SHAMAEIZADEH: " + buffCounter);
+        System.arraycopy(withHeader, GVPHeader.headerSize, array, 0, Math.min(array.length, withHeader.length - GVPHeader.headerSize));
     }
 
-    void readPacket(byte[] array) throws Exception // READS PACKET FROM SOCKET
+    void readPacket(byte[] array) throws Exception 
     {
         DatagramPacket receivePacket = new DatagramPacket(array, array.length);
         socket.receive(receivePacket);
-        System.out.println("packet size: " + receivePacket.getLength());
+    //    System.out.println("packet size: " + receivePacket.getLength());
     }
 
     void close() throws Exception {
@@ -245,8 +249,7 @@ public class GVPSocket
                 }
                 else {
                     System.out.println("Packet has data and is not ack."+" Packet number is: "+head.getSeqNumber());
-                    System.arraycopy(header, GVPHeader.headerSize, array, 0, Math.min(array.length, header.length) - GVPHeader.headerSize); 
-                    // BUG
+              //      System.arraycopy(header, GVPHeader.headerSize, array, 0, Math.min(array.length, header.length) - GVPHeader.headerSize); 
                     Checksum checksum = new CRC32();
                     checksum.update(array, GVPHeader.headerSize, receivePacket.getLength() - GVPHeader.headerSize);
                     long checksumValue = checksum.getValue();
@@ -254,8 +257,9 @@ public class GVPSocket
                         System.out.println("Error in packet checksum");
                         continue;
                     }
-                    if (head.getSeqNumber()==receiveNum){
-                        receiveNum = 1-receiveNum;
+                    if (head.getSeqNumber() == receiveNum+1){
+                        //receiveNum = 1-receiveNum;
+                        receiveNum++;
                     }
                     else continue;
                     try {
@@ -285,8 +289,8 @@ public class GVPSocket
             super();
             seqNum = _seqNum;
             timer = new Timer();
-            timer.schedule(new Timeout(), new Date(),1000);
-            System.out.println("received seq number is: "+seqNum);
+            timer.schedule(new Timeout(), new Date(),5);
+        //    System.out.println("received seq number is: "+seqNum);
         }
 
         private class Timeout extends TimerTask
@@ -295,22 +299,22 @@ public class GVPSocket
                 try {
                     System.out.println("time limit exceeded");
                     boolean flag = false;
-                    System.out.println("ack buffer size is: "+ACKbuffer.size());
+         //           System.out.println("ack buffer size is: "+ACKbuffer.size());
                     for(int i=0;i<ACKbuffer.size();i++){
                         int ackNumber = ACKbuffer.get(i);
-                        System.out.println("searching for ack "+ seqNum +"and ack buffer size: "+ACKbuffer.size());
+                        System.out.println("searching for ack "+ seqNum +" and ack buffer size: "+ACKbuffer.size());
                         if (ackNumber == seqNum){
                             ACKbuffer.remove(i);
-                            System.out.println("ack number"+i+"removed");
-                            System.out.println("ack found in ackbuffer");
+                            System.out.println("ack found in ackbuffer ack number "+i+" removed");
                             timer.cancel();
                             System.out.println("timer canceled");
                             flag = true;
+                            lastACKed = seqNum;
                             break;
                         }
                     }
                     if (!flag){
-                        System.out.println("ack not found => resending" + seqNum);
+                        System.out.println("ack not found => resending " + seqNum);
                         resend();
                     }
                 } catch (Exception e) {}
