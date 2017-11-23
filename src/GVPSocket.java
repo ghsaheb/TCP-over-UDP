@@ -299,7 +299,7 @@ public class GVPSocket  implements MySocket
 //                  System.out.println("time limit exceeded");
                     boolean flag = false;
 //                  System.out.println("ack buffer size is: "+ACKbuffer.size());
-
+/*
                     if (seqNum % 10 == 0){
                         ArrayList<Integer> expired = new ArrayList<Integer>();
                         for (int i=0;i<ACKbuffer.size();i++){
@@ -309,10 +309,12 @@ public class GVPSocket  implements MySocket
                             ACKbuffer.remove(expired.get(i));
                         }
                     }
-    
+*/
+                    ArrayList<Integer> expired = new ArrayList<Integer>();
                     for(int i=0;i<ACKbuffer.size();i++){
                         int ackNumber = ACKbuffer.get(i);
 //                      System.out.println("searching for ack "+ seqNum +" and ack buffer size: "+ACKbuffer.size());
+                        if (ackNumber < seqNum) expired.add(i);
                         if (ackNumber == seqNum){
                             ACKbuffer.remove(i);
 //                          System.out.println("ack found in ackbuffer ack number "+i+" removed");
@@ -322,6 +324,9 @@ public class GVPSocket  implements MySocket
                             lastACKed = seqNum;
                             break;
                         }
+                    }
+                    for (int i = expired.size()-1;i>=0;i--){
+                        ACKbuffer.remove(expired.get(i));
                     }
                     if (!flag){
 //                      System.out.println("ack not found => resending " + seqNum);
@@ -335,7 +340,27 @@ public class GVPSocket  implements MySocket
     }
 
     public Map<String,String> getHeaders() throws Exception {
-        return null;
+        Map<String, String> lastPacket = new HashMap<String, String>();
+        if (sendBuffer != null){
+            byte[] temp = new byte[sendBuffer.length];
+            for (int i=0;i<sendBuffer.length;i++) temp[i] = sendBuffer[i];
+            byte[] headerTemp = new byte[GVPHeader.headerSize];
+            for (int i=0;i<GVPHeader.headerSize;i++) headerTemp[i] = sendBuffer[i];
+            String tempString = new String(temp, "UTF-8");
+            String headerTempString = new String(headerTemp, "UTF-8");
+            lastPacket.put(headerTempString, tempString);
+        }
+        if (buffer.size() != 0){
+            byte[] lastReceived = buffer.get(buffer.size()-1);
+            byte[] temp = new byte[lastReceived.length];
+            for (int i=0;i<lastReceived.length;i++) temp[i] = lastReceived[i];
+            byte[] headerTemp = new byte[GVPHeader.headerSize];
+            for (int i=0;i<GVPHeader.headerSize;i++) headerTemp[i] = lastReceived[i];
+            String tempString = new String(temp, "UTF-8");
+            String headerTempString = new String(headerTemp, "UTF-8");
+            lastPacket.put(headerTempString, tempString);
+        }
+        return lastPacket;
     }
 
 }
