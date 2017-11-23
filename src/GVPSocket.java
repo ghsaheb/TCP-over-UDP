@@ -115,6 +115,7 @@ public class GVPSocket  implements MySocket
         */
         int numOfPackets = ByteBuffer.wrap(initialPacket).getInt();
         if (numOfPackets < 0){
+            fos.close();
             throw new GVPException("Error in writing to file. Initial packet is not correct");
         }
         for (int i=0;i<numOfPackets;i++){
@@ -229,7 +230,7 @@ public class GVPSocket  implements MySocket
                     socket.receive(receivePacket);
 //                  System.out.println("packet received");
                 } catch (IOException e) {
-//                  System.out.println("read thread is not receiving any packets");
+                    System.out.println("Thread is not receiving any packets");
                     break;
                 }
                 byte[] header = new byte[GVPHeader.headerSize];
@@ -258,7 +259,9 @@ public class GVPSocket  implements MySocket
                     try {
                         sendAck(head.getSeqNumber());
 //                      System.out.println("ACK sent and ackNum is:"+ head.getSeqNumber());
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                        System.out.println("Exception occured in sending ACK");
+                    }
                     if (head.getSeqNumber() == receiveNum+1){
                         receiveNum++;
                     }
@@ -296,6 +299,17 @@ public class GVPSocket  implements MySocket
 //                  System.out.println("time limit exceeded");
                     boolean flag = false;
 //                  System.out.println("ack buffer size is: "+ACKbuffer.size());
+
+                    if (seqNum % 10 == 0){
+                        ArrayList<Integer> expired = new ArrayList<Integer>();
+                        for (int i=0;i<ACKbuffer.size();i++){
+                            if (ACKbuffer.get(i) < seqNum) expired.add(i);
+                        }
+                        for (int i = expired.size()-1;i>=0;i--){
+                            ACKbuffer.remove(expired.get(i));
+                        }
+                    }
+    
                     for(int i=0;i<ACKbuffer.size();i++){
                         int ackNumber = ACKbuffer.get(i);
 //                      System.out.println("searching for ack "+ seqNum +" and ack buffer size: "+ACKbuffer.size());
@@ -313,7 +327,9 @@ public class GVPSocket  implements MySocket
 //                      System.out.println("ack not found => resending " + seqNum);
                         resend();
                     }
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                    System.out.println("Exception occured in Timeout");
+                }
             }
         }
     }
