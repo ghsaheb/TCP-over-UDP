@@ -3,17 +3,17 @@ import java.net.*;
 import java.util.*;
 import java.util.zip.CRC32;
 
-// import com.kashipazha.TCP.MyServerSocket;
+import com.kashipazha.TCP.MyServerSocket;
 
 
-public class GVPServerSocket// extends MyServerSocket
+public class GVPServerSocket extends MyServerSocket
 {
 
     private DatagramSocket serverSocket;
     
     public GVPServerSocket(int portNumber) throws Exception
     {
- //       super(portNumber);
+        super(portNumber);
         serverSocket = new DatagramSocket(portNumber);
     }
 

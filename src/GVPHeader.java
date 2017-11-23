@@ -144,9 +144,11 @@ public class GVPHeader
         header[9] = result[1];
         header[10] = result[2];
         header[11] = result[3];
-//        byte[] result = ByteBuffer.allocate(2).putLong(checksum.getValue()).array();
-//        header[12] = result[0];
-//        header[13] = result[1];
+        /*
+        byte[] result = ByteBuffer.allocate(2).putLong(checksum.getValue()).array();
+        header[12] = result[0];
+        header[13] = result[1];
+        */
         if(ACK==true) result = setByte(1,1);
         else result = setByte(0,1);
         header[14] = result[3];
